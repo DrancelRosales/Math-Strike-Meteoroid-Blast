@@ -1,0 +1,505 @@
+@startuml MathStrike_ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam packageStyle rectangle
+
+package "mathstrike" {
+
+    ' ==========================================
+    ' 1. CORE MATH & DATA MODELS
+    ' ==========================================
+    class Problem {
+        - question : String
+        - answer : int
+        + Problem(question : String, answer : int)
+        + getQuestion() : String
+        + getAnswer() : int
+        + isCorrect(guess : int) : boolean
+    }
+
+    enum Difficulty {
+        EASY
+        MEDIUM
+        HARD
+        - label : String
+        - min : int
+        - max : int
+        - operators : char[]
+        - hearts : int
+        - seconds : double
+        - spawnSeconds : double
+        - orderOfOperations : boolean
+        + getLabel() : String
+        + getMin() : int
+        + getMax() : int
+        + getOperators() : char[]
+        + getHearts() : int
+        + getSeconds() : double
+        + getSpawnSeconds() : double
+        + usesOrderOfOperations() : boolean
+        + {static} fromString(s : String) : Difficulty
+    }
+
+    class ProblemGenerator {
+        - {static} TABLE_LIMIT : int = 12
+        - random : Random
+        - current : Difficulty
+        + ProblemGenerator(random : Random, difficulty : Difficulty)
+        + setDifficulty(difficulty : Difficulty) : void
+        + getDifficulty() : Difficulty
+        + generate() : Problem
+        + generateForLevel(level : int) : Problem
+        + basic(min : int, max : int, op : char) : Problem
+        + expression(max : int) : Problem
+    }
+
+    class InputValidator {
+        - {static} MAX_DIGITS : int = 6
+        + {static} parseAnswer(raw : String) : int
+    }
+
+    class InvalidAnswerException <<Exception>> {
+        + InvalidAnswerException(message : String)
+    }
+
+    class AnswerRecord <<record>> {
+        + question : String
+        + given : String
+        + correctAnswer : int
+        + outcome : Outcome
+    }
+
+    class GameEvent <<record>> {
+        + type : String
+        + x : double
+        + y : double
+        + text : String
+        + tone : String
+        + target : Target
+    }
+
+    ' ==========================================
+    ' 2. TARGET HIERARCHY
+    ' ==========================================
+    abstract class Target {
+        + {static} WORLD_WIDTH : int = 800
+        + {static} WORLD_HEIGHT : int = 600
+        + {static} GROUND_Y : int = 540
+        - id : int
+        - problem : Problem
+        - speed : double
+        - radius : int
+        # x : double
+        # y : double
+        # Target(problem : Problem, speed : double)
+        + getId() : int
+        + getProblem() : Problem
+        + getX() : double
+        + getY() : double
+        + getSpeed() : double
+        + getRadius() : int
+        + placeAt(newX : double) : void
+        + setY(newY : double) : void
+        + {abstract} move(dt : double) : void
+        + {abstract} draw(g : Graphics2D, time : double) : void
+        + {abstract} explode(fx : Effects, big : boolean) : void
+        + hasReachedGround() : boolean
+        # drawLabel(g : Graphics2D) : void
+    }
+
+    class Meteor {
+        - drift : double
+        + Meteor(problem : Problem, speed : double, random : Random)
+        + move(dt : double) : void
+        + draw(g : Graphics2D, time : double) : void
+        + explode(fx : Effects, big : boolean) : void
+    }
+
+    class Asteroid {
+        - amplitude : double
+        - frequency : double
+        - phase : double
+        - spin : double
+        - baseX : double
+        - age : double
+        - angle : double
+        + Asteroid(problem : Problem, speed : double, random : Random)
+        + placeAt(newX : double) : void
+        + move(dt : double) : void
+        + draw(g : Graphics2D, time : double) : void
+        + explode(fx : Effects, big : boolean) : void
+    }
+
+    ' ==========================================
+    ' 3. GAME MODES, HEALTH, SCORING & ENGINE
+    ' ==========================================
+    class Health {
+        - maxHearts : int
+        - hearts : int
+        + Health(hearts : int)
+        + loseHeart() : void
+        + getHearts() : int
+        + getMaxHearts() : int
+        + isDead() : boolean
+    }
+
+    class ScoreManager {
+        + {static} BASE_POINTS : int = 100
+        + {static} MAX_MULTIPLIER : int = 5
+        - score : int
+        - streak : int
+        - bestStreak : int
+        - correct : int
+        - total : int
+        - records : List<AnswerRecord>
+        + getMultiplier() : int
+        + recordCorrect(record : AnswerRecord, heightRatio : double) : int
+        + addScore(points : int) : void
+        + recordMiss(record : AnswerRecord) : void
+        + getScore() : int
+        + getStreak() : int
+        + getBestStreak() : int
+        + getCorrect() : int
+        + getTotal() : int
+        + getAccuracy() : double
+        + getCongratulation() : String
+        + getRecords() : AnswerRecord[]
+    }
+
+    class HighScores {
+        - {static} PREFS : Preferences
+        + {static} get(key : String) : int
+        + {static} submit(key : String, score : int) : boolean
+    }
+
+    abstract class GameMode {
+        # score : ScoreManager
+        # generator : ProblemGenerator
+        # random : Random
+        # GameMode(random : Random, generator : ProblemGenerator)
+        + getScore() : ScoreManager
+        + {abstract} getKey() : String
+        + {abstract} getName() : String
+        + {abstract} getTheme() : String
+        + {abstract} getSubtitle() : String
+        + {abstract} start() : void
+        + {abstract} update(dt : double) : void
+        + {abstract} onCorrect(record : AnswerRecord, heightRatio : double) : int
+        + {abstract} onMiss(record : AnswerRecord) : void
+        + {abstract} isGameOver() : boolean
+        + {abstract} nextProblem() : Problem
+        + {abstract} createTarget(problem : Problem) : Target
+        + {abstract} getSpawnInterval() : double
+        + {abstract} getMaxTargets() : int
+        + getHearts() : int
+        + getMaxHearts() : int
+        + getTimeLeft() : double
+        + getLevel() : int
+        + getBonusSeconds() : double
+    }
+
+    class ClassicMode {
+        - difficulty : Difficulty
+        - health : Health
+        + ClassicMode(random : Random, difficulty : Difficulty)
+        + getKey() : String
+        + getName() : String
+        + getTheme() : String
+        + getSubtitle() : String
+        + start() : void
+        + update(dt : double) : void
+        + onCorrect(record : AnswerRecord, heightRatio : double) : int
+        + onMiss(record : AnswerRecord) : void
+        + isGameOver() : boolean
+        + nextProblem() : Problem
+        + createTarget(problem : Problem) : Target
+        + getSpawnInterval() : double
+        + getMaxTargets() : int
+        + getHearts() : int
+        + getMaxHearts() : int
+    }
+
+    class TimeAttackMode {
+        + {static} START_SECONDS : double = 60
+        + {static} MAX_SECONDS : double = 99
+        + {static} MISS_PENALTY : double = 2
+        - timeLeft : double
+        - level : int
+        - bonusSeconds : double
+        + TimeAttackMode(random : Random)
+        + getKey() : String
+        + getName() : String
+        + getTheme() : String
+        + getSubtitle() : String
+        + start() : void
+        + update(dt : double) : void
+        + onCorrect(record : AnswerRecord, heightRatio : double) : int
+        + onMiss(record : AnswerRecord) : void
+        + isGameOver() : boolean
+        + nextProblem() : Problem
+        + createTarget(problem : Problem) : Target
+        + getSpawnInterval() : double
+        + getMaxTargets() : int
+        + getTimeLeft() : double
+        + getLevel() : int
+        + getBonusSeconds() : double
+    }
+
+    class Game {
+        - mode : GameMode
+        - random : Random
+        - targets : List<Target>
+        - events : List<GameEvent>
+        - phase : Phase
+        - readyLeft : double
+        - spawnTimer : double
+        + Game(mode : GameMode, random : Random)
+        + start() : void
+        + update(dt : double) : void
+        + spawnTarget() : void
+        + checkAnswer(raw : String) : boolean
+        + endRound() : void
+        + getMode() : GameMode
+        + getPhase() : Phase
+        + getTargets() : List<Target>
+        + drainEvents() : List<GameEvent>
+    }
+
+    ' ==========================================
+    ' 4. VISUAL THEMES, EFFECTS & SOUND
+    ' ==========================================
+    abstract class Theme {
+        + {static} HEIGHT : int = 600
+        # {static} P : int = 4
+        # {static} GROUND : int = 540
+        - cache : BufferedImage
+        + {static} of(key : String) : Theme
+        + {abstract} getName() : String
+        + {abstract} getAccent() : Color
+        + {abstract} getBeamColor() : Color
+        # {abstract} paintStatic(g : Graphics2D, width : int) : void
+        + {abstract} paintAnimated(g : Graphics2D, t : double, width : int) : void
+        + {abstract} drawTurret(g : Graphics2D, aim : double, recoil : double, t : double) : void
+        + muzzle(aim : double, recoil : double) : double[]
+        + paintBackdrop(g : Graphics2D, t : double, width : int) : void
+    }
+
+    class PrehistoricTheme {
+        + getName() : String
+        + getAccent() : Color
+        + getBeamColor() : Color
+        # paintStatic(g : Graphics2D, w : int) : void
+        + paintAnimated(g : Graphics2D, t : double, w : int) : void
+        + drawTurret(g : Graphics2D, aim : double, recoil : double, t : double) : void
+    }
+
+    class SpaceTheme {
+        - stars : double[][][]
+        + getName() : String
+        + getAccent() : Color
+        + getBeamColor() : Color
+        # paintStatic(g : Graphics2D, w : int) : void
+        + paintAnimated(g : Graphics2D, t : double, w : int) : void
+        + drawTurret(g : Graphics2D, aim : double, recoil : double, t : double) : void
+    }
+
+    class Effects {
+        + fireball(x : double, y : double, radius : int, big : boolean) : void
+        + debris(x : double, y : double, radius : int, big : boolean) : void
+        + beam(x0 : double, y0 : double, x1 : double, y1 : double, color : Color) : void
+        + scorch(x : double) : void
+        + floating(text : String, x : double, y : double, color : Color, scale : int) : void
+        + feedback(text : String, tone : String) : void
+        + shake(amount : double) : void
+        + flash() : void
+        + update(dt : double) : void
+        + paintWorld(g : Graphics2D) : void
+        + paintBanner(g : Graphics2D, fieldWidth : int) : void
+    }
+
+    class Sprites {
+        + {static} rock(t : Target) : BufferedImage
+        + {static} label(t : Target) : BufferedImage
+        + {static} prune(aliveIds : Set<Integer>) : void
+        + {static} clear() : void
+    }
+
+    class PixelArt {
+        + {static} P : int = 4
+        + {static} snap(v : double) : int
+        + {static} rect(g : Graphics2D, x : double, y : double, w : double, h : double, color : Color) : void
+        + {static} ellipse(g : Graphics2D, cx : double, cy : double, rx : double, ry : double, color : Color) : void
+        + {static} disc(g : Graphics2D, cx : double, cy : double, r : double, color : Color) : void
+        + {static} ring(g : Graphics2D, cx : double, cy : double, rx : double, ry : double, color : Color) : void
+    }
+
+    class PixelFont {
+        + {static} width(text : String, scale : int) : int
+        + {static} height(scale : int) : int
+        + {static} draw(g : Graphics2D, text : String, x : int, y : int, scale : int, color : Color) : void
+        + {static} centered(g : Graphics2D, text : String, cx : int, y : int, scale : int, color : Color) : void
+        + {static} render(text : String, scale : int, fg : Color, bg : Color) : BufferedImage
+    }
+
+    class Sound {
+        + {static} isEnabled() : boolean
+        + {static} setEnabled(on : boolean) : void
+        + {static} play(name : String) : void
+    }
+
+    ' ==========================================
+    ' 5. UI SCENES & DESKTOP ENTRY POINT
+    ' ==========================================
+    abstract class Scene {
+        # app : GamePanel
+        # buttons : List<Button>
+        # focus : int
+        # Scene(app : GamePanel)
+        + update(dt : double) : void
+        + {abstract} paint(g : Graphics2D, t : double) : void
+        + mouseMoved(x : int, y : int) : void
+        + mousePressed(x : int, y : int) : void
+        + mouseWheel(rotation : int) : void
+        + keyTyped(c : char) : void
+        + keyPressed(e : KeyEvent) : void
+    }
+
+    class TitleScene {
+        - backdrop : Backdrop
+        + TitleScene(app : GamePanel)
+        + update(dt : double) : void
+        + paint(g : Graphics2D, t : double) : void
+    }
+
+    class ChoiceScene {
+        - backdrop : Backdrop
+        - title : String
+        + ChoiceScene(app : GamePanel, theme : Theme, title : String, choices : List<Choice>, back : Runnable)
+        + update(dt : double) : void
+        + paint(g : Graphics2D, t : double) : void
+    }
+
+    class TextScene {
+        - backdrop : Backdrop
+        - title : String
+        - page : int
+        + TextScene(app : GamePanel, theme : Theme, title : String, pages : List, primaryLabel : String, primary : Runnable, back : Runnable)
+        + update(dt : double) : void
+        + paint(g : Graphics2D, t : double) : void
+    }
+
+    class PlayScene {
+        - game : Game
+        - mode : GameMode
+        - theme : Theme
+        - fx : Effects
+        - keypad : Button[]
+        + PlayScene(app : GamePanel, game : Game, modeKey : String, difficulty : Difficulty)
+        + update(dt : double) : void
+        + paint(g : Graphics2D, t : double) : void
+    }
+
+    class ResultsScene {
+        - game : Game
+        - score : ScoreManager
+        - backdrop : Backdrop
+        - records : AnswerRecord[]
+        + ResultsScene(app : GamePanel, game : Game, newBest : boolean)
+        + update(dt : double) : void
+        + paint(g : Graphics2D, t : double) : void
+    }
+
+    class Backdrop {
+        - theme : Theme
+        - targets : List<Target>
+        - fx : Effects
+        + Backdrop(theme : Theme, cannon : boolean)
+        + update(dt : double) : void
+        + paint(g : Graphics2D, t : double) : void
+    }
+
+    class Button {
+        + bounds : Rectangle
+        + label : String
+        + action : Runnable
+        + paint(g : Graphics2D, t : double) : void
+        + contains(x : int, y : int) : boolean
+    }
+
+    class GamePanel {
+        + {static} W : int = 1000
+        + {static} H : int = 600
+        - scene : Scene
+        - timer : Timer
+        + GamePanel(exitAction : Runnable)
+        + start() : void
+        + tick(dt : double) : void
+        + renderFrame() : BufferedImage
+        + showTitle() : void
+        + showModes() : void
+        + showDifficulty() : void
+        + showHowTo() : void
+        + showBriefing() : void
+        + startGame() : void
+        + showResults(game : Game, newBest : boolean) : void
+    }
+
+    class MathStrike {
+        + {static} main(args : String[]) : void
+    }
+
+    ' ==========================================
+    ' RELATIONSHIPS
+    ' ==========================================
+    Target <|-- Meteor
+    Target <|-- Asteroid
+    Target *-- Problem
+
+    GameMode <|-- ClassicMode
+    GameMode <|-- TimeAttackMode
+    GameMode *-- ScoreManager
+    GameMode *-- ProblemGenerator
+    ClassicMode *-- Health
+    ClassicMode --> Difficulty
+    ClassicMode ..> Meteor : creates
+    TimeAttackMode ..> Asteroid : creates
+
+    ProblemGenerator --> Difficulty
+    ProblemGenerator ..> Problem : creates
+    ScoreManager *-- AnswerRecord
+
+    Game *-- GameMode
+    Game o-- Target
+    Game *-- GameEvent
+    Game ..> InputValidator : uses
+    InputValidator ..> InvalidAnswerException : throws
+
+    Theme <|-- PrehistoricTheme
+    Theme <|-- SpaceTheme
+
+    Scene <|-- TitleScene
+    Scene <|-- ChoiceScene
+    Scene <|-- TextScene
+    Scene <|-- PlayScene
+    Scene <|-- ResultsScene
+    Scene o-- Button
+
+    TitleScene *-- Backdrop
+    ChoiceScene *-- Backdrop
+    TextScene *-- Backdrop
+    ResultsScene *-- Backdrop
+    Backdrop --> Theme
+
+    PlayScene *-- Game
+    PlayScene --> Theme
+    PlayScene *-- Effects
+    PlayScene ..> HighScores : uses
+    PlayScene ..> Sound : uses
+
+    MathStrike ..> GamePanel : creates
+    GamePanel *-- Scene
+    Target ..> Sprites : uses
+    Sprites ..> PixelArt : uses
+    Sprites ..> PixelFont : uses
+}
+@enduml
