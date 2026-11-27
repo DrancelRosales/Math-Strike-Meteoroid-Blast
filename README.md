@@ -746,16 +746,14 @@ java -jar MathStrike.jar
 ---
 
 ## 📸 11. Sample Screenshots
-
 > *All screenshots below are captured directly from the live `1000×600` game renderer.*
-
 | **1. Title Screen (`TitleScene` — Animated Space Backdrop)** | **2. Game Mode Selection (`ChoiceScene` — Classic vs. Time Attack)** |
 | :---: | :---: |
-| ![Title Screen](screenshots/01-title.png) | ![Choose Mode](screenshots/02-modes.png) |
+| ![Title Screen](OOP101-MathStrikeApp/docs/screenshots/01-title.png) | ![Choose Mode](OOP101-MathStrikeApp/docs/screenshots/02-modes.png) |
 | **3. Classic Mode — Difficulty Selection (`Easy`, `Medium`, `Hard`)** | **4. Classic Mode — Prehistoric Valley Gameplay (`PlayScene`)** |
-| ![Select Difficulty](screenshots/03-difficulty.png) | ![Classic Gameplay](screenshots/06-classic-play.png) |
+| ![Select Difficulty](OOP101-MathStrikeApp/docs/screenshots/03-difficulty.png) | ![Classic Gameplay](OOP101-MathStrikeApp/docs/screenshots/06-classic-play.png) |
 | **5. Time Attack — Lunar Defence Base Gameplay (`PlayScene`)** | **6. Post-Round Results & Scrollable Answer Review (`ResultsScene`)** |
-| ![Time Attack Gameplay](screenshots/12-ta-play.png) | ![Results Screen](screenshots/10-results.png) |
+| ![Time Attack Gameplay](OOP101-MathStrikeApp/docs/screenshots/12-ta-play.png) | ![Results Screen](OOP101-MathStrikeApp/docs/screenshots/10-results.png) |
 
 ---
 
