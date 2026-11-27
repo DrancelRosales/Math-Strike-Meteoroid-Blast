@@ -501,15 +501,17 @@ classDiagram
     class Effects {
         +fireball(double x, double y, int radius, boolean big) void
         +debris(double x, double y, int radius, boolean big) void
+        +spark(double x, double y, double vx, double vy, Color color, double life) void
         +beam(double x0, double y0, double x1, double y1, Color color) void
-        +scorch(double x) void
-        +floating(String text, double x, double y, Color color, int scale) void
+        +ring(double x, double y, Color color) void
+        +scar(double x) void
+        +floatText(String text, double x, double y, double vy, double life, Color color, int scale) void
         +feedback(String text, String tone) void
-        +shake(double amount) void
-        +flash() void
+        +shake(double seconds) void
+        +flash(double seconds) void
         +update(double dt) void
-        +paintWorld(Graphics2D g) void
-        +paintBanner(Graphics2D g, int fieldWidth) void
+        +paintScars(Graphics2D g) void
+        +paint(Graphics2D g) void
     }
 
     class Sprites {
@@ -637,7 +639,9 @@ classDiagram
         +showHowTo() void
         +showBriefing() void
         +startGame() void
-        +showResults(Game game, boolean newBest) void
+        +playAgain() void
+        +showResults(Game game, boolean newBest, String key) void
+        +exit() void
     }
 
     class MathStrike {
@@ -745,7 +749,7 @@ java -jar MathStrike.jar
 
 > *All screenshots below are captured directly from the live `1000×600` game renderer.*
 
-| **1. Title Screen (Animated Prehistoric Backdrop)** | **2. Game Mode Selection (`ChoiceScene`)** |
+| **1. Title Screen (Animated Space Backdrop)** | **2. Game Mode Selection (`ChoiceScene`)** |
 | :---: | :---: |
 | ![Title Screen](docs/screenshots/01-title.png) | ![Choose Mode](docs/screenshots/02-modes.png) |
 | **3. Classic Mode — Difficulty Selection** | **4. Classic Mode — Prehistoric Valley Gameplay** |
