@@ -749,12 +749,12 @@ java -jar MathStrike.jar
 
 > *All screenshots below are captured directly from the live `1000×600` game renderer.*
 
-| **1. Title Screen (Animated Space Backdrop)** | **2. Game Mode Selection (`ChoiceScene`)** |
+| **1. Title Screen (`TitleScene` — Animated Space Backdrop)** | **2. Game Mode Selection (`ChoiceScene` — Classic vs. Time Attack)** |
 | :---: | :---: |
 | ![Title Screen](docs/screenshots/01-title.png) | ![Choose Mode](docs/screenshots/02-modes.png) |
-| **3. Classic Mode — Difficulty Selection** | **4. Classic Mode — Prehistoric Valley Gameplay** |
+| **3. Classic Mode — Difficulty Selection (`Easy`, `Medium`, `Hard`)** | **4. Classic Mode — Prehistoric Valley Gameplay (`PlayScene`)** |
 | ![Select Difficulty](docs/screenshots/03-difficulty.png) | ![Classic Gameplay](docs/screenshots/06-classic-play.png) |
-| **5. Time Attack — Lunar Defence Base Gameplay** | **6. Post-Round Results & Scrollable Answer Review** |
+| **5. Time Attack — Lunar Defence Base Gameplay (`PlayScene`)** | **6. Post-Round Results & Scrollable Answer Review (`ResultsScene`)** |
 | ![Time Attack Gameplay](docs/screenshots/12-ta-play.png) | ![Results Screen](docs/screenshots/10-results.png) |
 
 ---
